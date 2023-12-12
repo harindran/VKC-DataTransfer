@@ -1,0 +1,30 @@
+             /*****     Creating the Data Transfer Table   **************/
+CREATE TABLE [dbo].[MIPL_DT_Process](
+      [Process] [varchar](100) NULL,
+      [IsPending] [char](1) NULL
+) ON [PRIMARY]
+ALTER TABLE [dbo].[MIPL_DT_Process] ADD  DEFAULT ('Y') FOR [IsPending]
+--===========================================================================
+go
+/*****     Inserting the Process to be Done   **************/
+Create Procedure [dbo].[SP_DT_Process_Insert]
+@Process Varchar(100)
+As
+Begin
+If Not exists(Select 1 from [MIPL_DT_Process] where Process=@Process)
+      Insert into [MIPL_DT_Process] (Process) Values (@Process);
+Else
+      Update [MIPL_DT_Process] Set IsPending='Y' where Process=@Process
+End
+--===========================================================================
+go
+/*****     Inserting the Process to be Done   **************/
+Create Procedure [dbo].[SP_DT_Process_Pending]
+@Process Varchar(100)=''
+As
+Begin
+If Not exists(Select 1 from [MIPL_DT_Process] where Process=@Process)
+      Set @Process=(Select Top 1 Process from [MIPL_DT_Process] Where IsPending='Y');
+Update [MIPL_DT_Process] Set IsPending='N' where Process=@Process
+Select isnull(@Process,'') [PendingProcess]
+End
